@@ -1,0 +1,63 @@
+---
+title: "Win Ratio Functions Vignette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{win_ratio_function_vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+We will use the following packages  
+
+```{r setup}
+library(win.ratio.functions)
+library(WINS)
+```
+
+## Introduction  
+
+This package seeks to make pretty output tables from Win Ratio Analysis done in the WINS package. It also can create a table that give the important win ratio statistics for each endpoint. For the net benefit statistic, the 
+net benefit statistics can be summed to equal the overall net benefit statistic. The tables this package generates are in Flextable format as this package is designed to be used in Word, but it can be used in other output types as well.  
+
+## Building a Nice Table  
+
+The first step is creating our data and model. This is example data and model from the WINS package. It consists of three endpoints and two arms. We make sure to set summary.print to false as this allows us to save the output in a list format rather than having it printed.  
+
+```{r, results='hide'}
+data_binary <- WINS::data_binary
+res_binary <- WINS::win.stat(data = data_binary, ep_type = "binary", priority = c(1:3),
+stratum.weight = "unstratified", arm.name = c("A","B"), alpha=0.05,
+digit = 3,pvalue = "two-sided", summary.print = FALSE)
+```
+
+The second step is putting our model into the nice_table function to create our formatted Flextable with our output. We can change the text size, here we set it to 10, and add a footnote, here we say, "This is Vignette".  
+
+```{r}
+nice_table(res_binary,text_size = 10, footnote_text = "This is Vignette")
+```
+
+## Creating a Table With The Statistics For All The Endpoints  
+
+We are going to use the data and model from before to generate this table. We will also create a numeric variable called tot_comps. This variable has the total number of person to person comparisons made in the model. This is calculated by multiplying the number of people in the first arm and the number of people in the second arm. This is the same as multiplying the number of people in the control group and the number of people in the treatment group. This number is needed to calculate the statistics in the table. Once we have made that variable, we can our model and our tot_comps variable to the function. We also must add either the number of endpoints or the endpoints names. The number of endpoints in the number_endpoints argument or the total number of names in the endpoint_names argument must be equal to the number of endpoints in the model or else you will get an error. In this example, since there are three endpoints and we do not know their names, we just add the number three to the number_endpoints argument. We also change the text size to 10 and add footnote that says "Test 123"
+
+```{r}
+tot_comps <- sum(data_binary$arm == "A") * sum(data_binary$arm == "B")
+inter_table(res_binary, tot_comp = tot_comps, number_endpoints = 3,text_size = 10, footnote_text = "Test 123")
+```
+
+### Adding Endpoint Names  
+
+To create a table with the names specified, we remove the number_endpoints argument and use the endpoint_names argument with a vector of length three (3 names) consisting of our names of our endpoints.
+
+```{r}
+endpoint_names <- c("Death", "Stroke", "Flu")
+inter_table(res_binary, tot_comp = tot_comps,  endpoint_names = endpoint_names,text_size = 10, footnote_text = "Test 123")
+```
+
